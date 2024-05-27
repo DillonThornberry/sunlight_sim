@@ -13,11 +13,11 @@ arr = np.array
 SCREEN_WIDTH = 400
 SCREEN_HEIGHT = 300
 
-SW_CORNER = arr([OBSTRUCTIONS[0].topleft[0],OBSTRUCTIONS[0].topleft[1]])
-SE_CORNER = arr([OBSTRUCTIONS[0].bottomright[0], OBSTRUCTIONS[0].bottomright[1]])
-NW_CORNER = arr([OBSTRUCTIONS[0].bottomright[0], OBSTRUCTIONS[0].bottomright[1]])
-MN_CORNER = arr([92, 350])
-ME_CORNER = arr([192, 250])
+SW_CORNER = arr([OBSTRUCTIONS[4].topleft[0],OBSTRUCTIONS[4].topleft[1]])
+SE_CORNER = arr([OBSTRUCTIONS[4].bottomright[0], OBSTRUCTIONS[4].bottomright[1]])
+NW_CORNER = arr([OBSTRUCTIONS[3].topleft[0], OBSTRUCTIONS[3].topleft[1]])
+MN_CORNER = arr([OBSTRUCTIONS[3].bottomright[0], OBSTRUCTIONS[3].bottomright[1]])
+ME_CORNER = arr([OBSTRUCTIONS[1].bottomright[0], OBSTRUCTIONS[1].bottomright[1]])
 
 def s(vec2):
     rot = arr([[0, 1], [-1, 0]])
