@@ -1,17 +1,17 @@
 from suncalc import get_position, get_times
 from datetime import datetime, timedelta
-from math import pi, degrees, sin, cos
+from math import pi, degrees, sin, cos, tan
 import numpy as np
 import pygame as pg
 from obj import Rectangle, OBSTRUCTIONS
 
-my_location = (39.734644019874075, -104.99554724682059)
-# (39.7, -105)
+my_location = (39.7, -105)
 time = datetime.now() - timedelta(hours=0)
 arr = np.array
 
 SCREEN_WIDTH = 400
 SCREEN_HEIGHT = 300
+RES_REDUCE = 1
 
 SW_CORNER = arr([OBSTRUCTIONS[4].topleft[0],OBSTRUCTIONS[4].topleft[1]])
 SE_CORNER = arr([OBSTRUCTIONS[4].bottomright[0], OBSTRUCTIONS[4].bottomright[1]])
@@ -19,6 +19,8 @@ NW_CORNER = arr([OBSTRUCTIONS[3].topleft[0], OBSTRUCTIONS[3].topleft[1]])
 MN_CORNER = arr([OBSTRUCTIONS[3].bottomright[0], OBSTRUCTIONS[3].bottomright[1]])
 ME_CORNER = arr([OBSTRUCTIONS[1].bottomright[0], OBSTRUCTIONS[1].bottomright[1]])
 
+
+# Transform world coordinates to screen
 def s(vec2):
     rot = arr([[0, 1], [-1, 0]])
     flip = arr([[1,0], [0,-1]])
@@ -31,11 +33,23 @@ def s(vec2):
     output = output.astype(float) * scale
     return output
 
-
-
-
+# Get start positions for rays
+def getGroundPositions():
+    positions = []
+    minTan = 2
+    for x in range(1, SE_CORNER[0] - 1, RES_REDUCE):
+        for y in range(1, NW_CORNER[1] - 1, RES_REDUCE):
+            if x > 92 and y > 327 and (((522 - y) / (x - 92)) < minTan):
+                continue 
+            positions.append(arr([x, y, 0]))
+    
+    return positions
 
 def main():
+
+    positions = getGroundPositions()
+    print(len(positions))
+
     pg.init()
     screen = pg.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
     pg.draw.line(screen, (255,255,255), s(SW_CORNER), s(NW_CORNER))
@@ -45,6 +59,18 @@ def main():
     pg.draw.line(screen, (255,255,255), s(SE_CORNER), s(SW_CORNER))
     pg.display.flip()
 
+    p = arr([0,0])
+    p = s(p)
+
+    pg.draw.circle(screen, (0,0,200), p, 5.0)
+
+    for p in positions:
+        p = arr([p[0], p[1]])
+        p = s(p)
+        p = [int(p[0]), int(p[1])]
+        screen.set_at(p, (200, 0, 0))
+
+    pg.display.flip()
     lat = input("Enter lat: ")
     lon = input("Enter lon: ")
 
