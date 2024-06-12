@@ -3,18 +3,18 @@ from datetime import datetime, timedelta
 from math import pi, degrees, sin, cos, tan
 import numpy as np
 import pygame as pg
-from obj import Rectangle, OBSTRUCTIONS
+from obj import OBSTRUCTIONS
 
 my_location = (39.7, -105)
-time = datetime.now() - timedelta(hours=0)
+time = datetime.now() - timedelta(hours=12)
 arr = np.array
 
 SCREEN_WIDTH = 400
 SCREEN_HEIGHT = 300
 RES_REDUCE = 1
 
-SW_CORNER = arr([OBSTRUCTIONS[4].topleft[0],OBSTRUCTIONS[4].topleft[1]])
-SE_CORNER = arr([OBSTRUCTIONS[4].bottomright[0], OBSTRUCTIONS[4].bottomright[1]])
+SW_CORNER = arr([OBSTRUCTIONS[4].bottomright[0],OBSTRUCTIONS[4].bottomright[1]])
+SE_CORNER = arr([OBSTRUCTIONS[4].topleft[0], OBSTRUCTIONS[4].topleft[1]])
 NW_CORNER = arr([OBSTRUCTIONS[3].topleft[0], OBSTRUCTIONS[3].topleft[1]])
 MN_CORNER = arr([OBSTRUCTIONS[3].bottomright[0], OBSTRUCTIONS[3].bottomright[1]])
 ME_CORNER = arr([OBSTRUCTIONS[1].bottomright[0], OBSTRUCTIONS[1].bottomright[1]])
@@ -39,11 +39,45 @@ def getGroundPositions():
     minTan = 2
     for x in range(1, SE_CORNER[0] - 1, RES_REDUCE):
         for y in range(1, NW_CORNER[1] - 1, RES_REDUCE):
+            # Ignore points in bottom right corner
             if x > 92 and y > 327 and (((522 - y) / (x - 92)) < minTan):
                 continue 
             positions.append(arr([x, y, 0]))
     
     return positions
+
+def isInLight(startPos, sunAngle):
+    for rect in OBSTRUCTIONS:
+        side1 = rect.topright - rect.topleft
+        side2 = rect.topleft - rect.bottomleft
+
+        norm = np.cross(side1, side2)
+        denom = np.dot(sunAngle, norm)
+
+        # Ray and obstruction are parallel
+        if np.abs(denom) < 1e-6:
+            continue
+        
+        t = np.dot(norm, (rect.topleft - startPos) / denom)
+
+        if t <= 0:
+            continue
+
+        hitPoint = startPos + t * sunAngle
+
+        ap = hitPoint - rect.topleft
+
+        sideDot1 = np.dot(side1, side1)
+        sideDot2 = np.dot(side2, side2)
+
+        hitDot1 = np.dot(side1, hitPoint)
+        hitDot2 = np.dot(side2, hitPoint)
+
+        if (0 <= hitDot1 <= sideDot1 and 0 <= hitDot2 <= sideDot2):
+            return False
+
+    return True
+
 
 def main():
 
@@ -59,22 +93,27 @@ def main():
     pg.draw.line(screen, (255,255,255), s(SE_CORNER), s(SW_CORNER))
     pg.display.flip()
 
-    p = arr([0,0])
-    p = s(p)
-
-    pg.draw.circle(screen, (0,0,200), p, 5.0)
-
+    sunPos = get_position(time, my_location[1], my_location[0])
+    sunVec = posVector(sunPos)
+    sunVec = sunVec / np.linalg.norm(sunVec)
+    
     for p in positions:
+        if not isInLight(p, sunVec):
+            continue
         p = arr([p[0], p[1]])
         p = s(p)
         p = [int(p[0]), int(p[1])]
         screen.set_at(p, (200, 0, 0))
-
+    print(sunVec)
     pg.display.flip()
-    lat = input("Enter lat: ")
-    lon = input("Enter lon: ")
+    
+    input("Complete")
 
     pg.quit()
+
+    '''
+    lat = input("Enter lat: ")
+    lon = input("Enter lon: ")
 
     try:
         lat = float(lat)
@@ -97,6 +136,7 @@ def main():
     vec = posVector(pos)
     print('(', vec[0], ',', vec[1], ',', vec[2], ')')
     print(np.linalg.norm(posVector(pos)))
+    '''
     return
 
 def posVector(pos):
